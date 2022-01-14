@@ -27,6 +27,19 @@
       <div class="card pointer" @click="openNewWindow">
         <p>Abre outra janela com título diferente</p>
       </div>
+
+      <div class="card">
+        <p>
+          Utiliza manipulação de erro no Rust, o mensagem de retorno vem dele
+        </p>
+        <label class="input pointer">
+          Ativar erro
+          <input type="checkbox" v-model="state.isWantError" class="pointer" />
+        </label>
+        <button type="button" @click="sendError2Rust()">Enviar</button>
+
+        <p>{{ state.errorMsg }}</p>
+      </div>
     </section>
   </main>
 </template>
@@ -44,6 +57,9 @@ export default defineComponent({
       os: "",
       textoTerminal: "Hello World",
       textoCustomizado: "",
+      isWantError: false,
+      errorLoading: false,
+      errorMsg: "",
     });
 
     onMounted(async () => {
@@ -66,7 +82,27 @@ export default defineComponent({
       invoke("send_message_to_terminal", { msg: state.textoCustomizado });
     };
 
-    return { state, openNewWindow, showMsgInTerminal, sendMsg2Terminal };
+    const sendError2Rust = async () => {
+      try {
+        state.errorLoading = true;
+        const message: string = await invoke("handle_error", {
+          isError: state.isWantError,
+        });
+        state.errorMsg = message;
+      } catch (err) {
+        state.errorMsg = err as string;
+      } finally {
+        state.errorLoading = false;
+      }
+    };
+
+    return {
+      state,
+      openNewWindow,
+      showMsgInTerminal,
+      sendMsg2Terminal,
+      sendError2Rust,
+    };
   },
 });
 </script>
@@ -82,14 +118,15 @@ main {
 .card-container {
   display: flex;
   flex-flow: row wrap;
-  width: 80vw;
   gap: 20px;
 }
 
 .card {
   box-sizing: border-box;
-  width: 200px;
-  height: 200px;
+  width: 250px;
+  height: 250px;
+  display: flex;
+  flex-flow: column wrap;
   border-radius: 5px;
   background-color: #812f33e1;
   transition: transform 0.3s;

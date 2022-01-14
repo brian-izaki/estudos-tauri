@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "RUST_DEBUG=1 vue-cli-service tauri:serve",
+    "dev": "RUST_BACKTRACE=1 RUST_DEBUG=1 vue-cli-service tauri:serve",
     "build": "vue-cli-service tauri:build",
     "tauri:info": "tauri info",
     "vue:dev": "vue-cli-service serve",
