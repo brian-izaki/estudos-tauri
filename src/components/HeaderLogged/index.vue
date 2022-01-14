@@ -1,7 +1,16 @@
 <template>
   <nav>
     <div class="menu-container">
-      <p></p>
+      <div class="return-container">
+        <button
+          v-if="routeName !== 'Home'"
+          @click="returnPage"
+          class="return"
+          title="Voltar para página anterior"
+        >
+          &lt;
+        </button>
+      </div>
       <h1>{{ routeName }}</h1>
       <p>Bem vindo Brian!</p>
     </div>
@@ -10,10 +19,11 @@
 
 <script>
 import { defineComponent, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 export default defineComponent({
   setup() {
     const route = useRoute();
+    const router = useRouter();
     const routeName = ref();
 
     watch(
@@ -21,8 +31,13 @@ export default defineComponent({
       (name) => (routeName.value = name)
     );
 
+    function returnPage() {
+      router.back();
+    }
+
     return {
       routeName,
+      returnPage,
     };
   },
 });
@@ -30,8 +45,21 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 nav {
-  height: 10vh;
   background: #705e78;
+}
+
+.return-container {
+  flex: 1;
+  justify-self: end;
+  width: auto;
+}
+
+.return {
+  font-size: 30px;
+  background: none;
+  border: none;
+  color: #f3feb0;
+  cursor: pointer;
 }
 
 .menu-container {
