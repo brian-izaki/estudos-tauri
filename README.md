@@ -94,3 +94,4 @@ Aplicação desktop/web desenvolvida com Vue e Tauri.
 ## References
 
 - [tauri](https://tauri.studio/en/)
+  - [extensão para o tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) (ajuda no `tauri.conf.json`)
