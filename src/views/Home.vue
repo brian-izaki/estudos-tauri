@@ -10,7 +10,7 @@
       <div class="card">
         Info do sistema operacional:
         <br />
-        {{ state.os }}
+        {{ state.os }} v. {{ state.osVersion }}
       </div>
 
       <div class="card pointer" @click="showMsgInTerminal">
@@ -40,30 +40,49 @@
 
         <p>{{ state.errorMsg }}</p>
       </div>
+
+      <div @click="showModal" class="card pointer">
+        <p>Acesse um arquivo .txt e veja o conteudo em um Modal</p>
+      </div>
     </section>
+
+    <Dialog
+      :header="state.modalTitle"
+      v-model:visible="state.modalVisible"
+      :modal="true"
+    >
+      <pre>{{ state.modalContent }}</pre>
+    </Dialog>
   </main>
 </template>
 
 <script lang="ts">
 import { defineComponent, onMounted, reactive } from "vue";
-import { platform } from "@tauri-apps/api/os";
+import { platform, version } from "@tauri-apps/api/os";
 import { appWindow, WebviewWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/tauri";
+import { readTextFile } from "@tauri-apps/api/fs";
+import { open } from "@tauri-apps/api/dialog";
 
 export default defineComponent({
   name: "Home",
   setup() {
     const state = reactive({
       os: "",
+      osVersion: "",
       textoTerminal: "Hello World",
       textoCustomizado: "",
       isWantError: false,
       errorLoading: false,
       errorMsg: "",
+      modalVisible: false,
+      modalTitle: "",
+      modalContent: "",
     });
 
     onMounted(async () => {
       state.os = await platform();
+      state.osVersion = await version();
     });
 
     appWindow.emit("event", "teste emit");
@@ -96,12 +115,40 @@ export default defineComponent({
       }
     };
 
+    const showModal = async () => {
+      try {
+        // pegar texto de um arquivo .txt
+        const arquivo = await open({
+          filters: [{ name: "txt", extensions: ["txt"] }],
+          defaultPath: "../../", // sem ele, vai direto pro src-tauri (deve ser o caminho do build no tauri.conf.json)
+        });
+
+        const regex = /(?:.(?!\/))+$/gim;
+
+        if (!Array.isArray(arquivo)) {
+          const findArr = regex.exec(arquivo);
+          state.modalTitle = findArr?.length ? findArr[0].replace("/", "") : "";
+
+          state.modalContent = await readTextFile(arquivo);
+        } else {
+          console.log("Não é permitido selecionar mais de um arquivo");
+        }
+      } catch (err) {
+        state.modalTitle = "Problemas...";
+        state.modalContent =
+          "Desculpe... tivemos problemas ao tentar ler ou acessar os arquivos";
+      } finally {
+        state.modalVisible = true;
+      }
+    };
+
     return {
       state,
       openNewWindow,
       showMsgInTerminal,
       sendMsg2Terminal,
       sendError2Rust,
+      showModal,
     };
   },
 });
